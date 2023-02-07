@@ -6,6 +6,7 @@ const userAuthSchema = require("../schemas/userAuth.json");
 const userUpdateSchema = require("../schemas/userUpdate.json"); 
 const jsonschema = require("jsonschema"); 
 const { createToken } = require("../helpers/tokens"); 
+const { ensureCorrectUserOrAdmin, ensureAdmin } = require("../middleware/authCheck"); 
 
 
 const router = express.Router(); 
@@ -15,7 +16,6 @@ const router = express.Router();
  * 
  * Authorization: None
  * 
- * isAdmin
  * 
  */
 
@@ -63,7 +63,7 @@ router.post('/login', async function (req, res, next) {
  * 
  * Authorization: admin
  */
-router.get('/', async function (req, res, next) {
+router.get('/', ensureAdmin, async function (req, res, next) {
     try {
         const users = await User.findAll();
         return res.json({ users }); 
@@ -76,7 +76,7 @@ router.get('/', async function (req, res, next) {
  * 
  * Authorization: admin
  */
-router.get('/user/:username', async function(req, res, next) {
+router.get('/user/:username', ensureCorrectUserOrAdmin, async function(req, res, next) {
     try {
         const user = await User.getUser(req.params.username); 
         return res.json({ user }); 
@@ -91,7 +91,7 @@ router.get('/user/:username', async function(req, res, next) {
  * 
  * Authorization: admin
  */
-router.get('/:username', async function(req, res, next) {
+router.get('/:username', ensureCorrectUserOrAdmin, async function(req, res, next) {
     try {
         const user = await User.get(req.params.username); 
         return res.json({ user }); 
@@ -105,7 +105,7 @@ router.get('/:username', async function(req, res, next) {
  * 
  * Authorization: admin or user
  */
-router.patch("/:username", async (req, res, next) => {
+router.patch("/:username", ensureCorrectUserOrAdmin, async (req, res, next) => {
     try {
         const validator = jsonschema.validate(req.body, userUpdateSchema); 
         if(!validator.valid) {
@@ -124,7 +124,7 @@ router.patch("/:username", async (req, res, next) => {
  * 
  * Authorization: admin or user  
  */ 
-router.delete("/:username", async (req, res, next) => {
+router.delete("/:username", ensureCorrectUserOrAdmin, async (req, res, next) => {
     try{
         await User.remove(req.params.username); 
         return res.json({ deleted: req.params.username }); 
@@ -138,7 +138,7 @@ router.delete("/:username", async (req, res, next) => {
  * Authorization: admin or user
  */
 
-router.post("/:username/hikes", async (req, res, next) => {
+router.post("/:username/hikes", ensureCorrectUserOrAdmin, async (req, res, next) => {
     try {
         const username = req.params.username;  
         await User.addHikeToUser(username, req.body); 
@@ -153,7 +153,7 @@ router.post("/:username/hikes", async (req, res, next) => {
  * 
  * Authorization: admin or user
  */
-router.delete("/:username/hikes/:hikeId", async (req, res, next) => {
+router.delete("/:username/hikes/:hikeId", ensureCorrectUserOrAdmin, async (req, res, next) => {
     try {
         const hikeId = req.params.hikeId; 
         await User.deleteHikeToUser(hikeId); 

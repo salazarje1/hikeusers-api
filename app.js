@@ -4,6 +4,7 @@ const cors = require('cors');
 const morgan = require('morgan'); 
 const { NotFoundError } = require('./expressError');
 const usersRoutes = require("./routes/users"); 
+const { authenticateToken } = require("./middleware/authCheck"); 
 
 const app = express(); 
 
@@ -12,6 +13,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(morgan("tiny"));
+app.use(authenticateToken); 
 
 
 app.use("/users", usersRoutes); 
