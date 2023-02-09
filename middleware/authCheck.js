@@ -21,7 +21,7 @@ function authenticateToken(req, res, next) {
 function ensureCorrectUserOrAdmin(req, res, next) {
     try {
         const user = res.locals.user;
-        console.log(user); 
+        // console.log(user); 
         if(!(user && (user.isAmin || user.username === req.params.username))) {
             throw new UnauthorizedError(); 
         }

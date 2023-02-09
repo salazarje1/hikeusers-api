@@ -28,6 +28,8 @@ router.post('/register', async function (req, res, next) {
             throw new BadRequestError(err); 
         }
 
+        delete req.body.confirmPassword; 
+
         const newUser = await User.register({ ...req.body, isAdmin: false }); 
         const token = createToken(newUser);
         

@@ -3,6 +3,7 @@ const request = require("supertest");
 const db = require("../db.js"); 
 const app = require("../app"); 
 const User = require("../models/users"); 
+const { createToken } = require("../helpers/tokens.js");
 
 beforeAll(async () => {
     await db.query("Delete from users"); 
@@ -34,7 +35,11 @@ beforeAll(async () => {
         password: "password3", 
         isAdmin: true
     })
+
 }); 
+
+const token = createToken({ username: 'u1', isAdmin: false });
+const admintoken = createToken({ username: 'u3', isAdmin: true }); 
 
 beforeEach(async () => {
     await db.query("Begin"); 
@@ -58,6 +63,7 @@ describe("POST /users", function() {
                 firstName: "New",
                 lastName: "User",
                 password: "new-password",
+                confirmPassword:"new-password",
                 email: "newUser@test.com"
             })
 
@@ -72,6 +78,7 @@ describe("GET /users", function() {
     test("Getting users works", async function () {
         const resp = await request(app)
             .get("/users")
+            .set("authorization", admintoken); 
 
         expect(resp.statusCode).toEqual(200);
         expect(resp.body).toEqual({
@@ -100,12 +107,21 @@ describe("GET /users", function() {
             ]
         })
     })
+
+    test("Getting users with no auth", async function () {
+        const resp = await request(app)
+            .get("/users")
+
+        expect(resp.statusCode).toEqual(401);
+    })
 })
 
 describe("GET /users/:username", function () {
     test("Getting user works", async function() {
         const resp = await request(app)
             .get(`/users/user/u1`)
+            .set("authorization", token); 
+
 
         expect(resp.statusCode).toEqual(200); 
         expect(resp.body).toEqual({
